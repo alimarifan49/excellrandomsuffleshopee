@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import threading
 import os
+from collections import defaultdict
+import math
 
 file_path = ""
 
@@ -53,42 +55,53 @@ def proses_thread():
             return
 
         # ==============================
-        # GROUPING (LEBIH CEPAT)
+        # GROUPING
         # ==============================
-        groups = {}
+        groups = defaultdict(list)
 
         for row in df_pending.to_dict('records'):
-            key = row['nama produk']
-            groups.setdefault(key, []).append(row)
+            groups[row['nama produk']].append(row)
 
-        # shuffle tiap grup
+        # shuffle awal tiap grup
         for key in groups:
             random.shuffle(groups[key])
 
         # ==============================
-        # ROUND ROBIN (ANTI INFINITE LOOP)
+        # 🔥 ALGORITMA BATCH PERSEN
         # ==============================
         result = []
-        last_product = None
 
         while any(groups.values()):
-            progress = False
+            batch = []
 
             for key in list(groups.keys()):
-                if groups[key] and key != last_product:
-                    item = groups[key].pop(0)
-                    result.append(item)
-                    last_product = key
-                    progress = True
+                items = groups[key]
+                n = len(items)
 
-            # 🚨 FIX: kalau stuck → paksa ambil
-            if not progress:
-                for key in list(groups.keys()):
-                    if groups[key]:
-                        item = groups[key].pop(0)
-                        result.append(item)
-                        last_product = key
-                        break
+                if n == 0:
+                    continue
+
+                # aturan persen (sesuai request kamu)
+                if n >= 5:
+                    percent = 0.20
+                elif n == 4:
+                    percent = 0.25
+                elif n == 3:
+                    percent = 0.30
+                else:
+                    percent = 0.50
+
+                take = max(1, math.ceil(n * percent))
+
+                # ambil sebagian
+                for _ in range(min(take, len(items))):
+                    batch.append(items.pop(0))
+
+            # acak batch
+            random.shuffle(batch)
+
+            # gabungkan ke hasil
+            result.extend(batch)
 
         df_pending_new = pd.DataFrame(result)
 
