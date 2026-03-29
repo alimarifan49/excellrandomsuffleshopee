@@ -47,6 +47,10 @@ def proses_thread():
         # FILTER DATA
         # ==============================
         df_done = df[df['status'].str.lower() == 'done']
+        df_other = df[
+            (df['status'].str.lower() != 'done') &
+            (df['status'].str.lower() != 'pending')
+        ]
         df_pending = df[df['status'].str.lower() == 'pending']
 
         if df_pending.empty:
@@ -108,7 +112,7 @@ def proses_thread():
         # ==============================
         # GABUNGKAN
         # ==============================
-        df_final = pd.concat([df_done, df_pending_new], ignore_index=True)
+        df_final = pd.concat([df_done, df_other, df_pending_new], ignore_index=True)
 
         # ==============================
         # SIMPAN
@@ -148,26 +152,36 @@ def proses_data():
     thread.start()
 
 
-# ==============================
-# GUI
-# ==============================
-root = tk.Tk()
-root.title("Shopee Video Optimizer")
-root.geometry("420x260")
+def main():
+    global root
+    global label_file
+    global btn_proses
+    global status_label
 
-title = tk.Label(root, text="Smart Shuffle Video Shopee", font=("Arial", 14, "bold"))
-title.pack(pady=10)
+    # ==============================
+    # GUI
+    # ==============================
+    root = tk.Tk()
+    root.title("Shopee Video Optimizer")
+    root.geometry("420x260")
 
-btn_pilih = tk.Button(root, text="Pilih File Excel", command=pilih_file, width=25)
-btn_pilih.pack(pady=5)
+    title = tk.Label(root, text="Smart Shuffle Video Shopee", font=("Arial", 14, "bold"))
+    title.pack(pady=10)
 
-label_file = tk.Label(root, text="Belum ada file dipilih", fg="gray")
-label_file.pack(pady=5)
+    btn_pilih = tk.Button(root, text="Pilih File Excel", command=pilih_file, width=25)
+    btn_pilih.pack(pady=5)
 
-btn_proses = tk.Button(root, text="Proses", command=proses_data, bg="green", fg="white", width=20)
-btn_proses.pack(pady=15)
+    label_file = tk.Label(root, text="Belum ada file dipilih", fg="gray")
+    label_file.pack(pady=5)
 
-status_label = tk.Label(root, text="Status: Idle", fg="blue")
-status_label.pack(pady=10)
+    btn_proses = tk.Button(root, text="Proses", command=proses_data, bg="green", fg="white", width=20)
+    btn_proses.pack(pady=15)
 
-root.mainloop()
+    status_label = tk.Label(root, text="Status: Idle", fg="blue")
+    status_label.pack(pady=10)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

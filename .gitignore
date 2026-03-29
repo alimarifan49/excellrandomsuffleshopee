@@ -1,1 +1,5 @@
 /dist
+/build
+/.venv
+__pycache__/
+/build_temp
